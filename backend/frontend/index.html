@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Emergency Route Navigator</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+    body {
+    background: linear-gradient(135deg, #f4f7fb, #e8eef7);
+    color: #222;
+    min-height: 100vh;
+}
+        header {
+    background: linear-gradient(135deg, #d90429, #ef233c);
+    color: white;
+    padding: 25px 20px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+        header h1 {
+            font-size: 28px;
+        }
+
+        header p {
+            margin-top: 5px;
+        }
+
+      .container {
+    width: 90%;
+    max-width: 900px;
+    margin: 30px auto;
+}
+
+       .card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e5e7eb;
+}
+
+      .card h2 {
+    margin-bottom: 20px;
+    color: #d90429;
+    font-size: 22px;
+    font-weight: 700;
+    border-left: 5px solid #d90429;
+    padding-left: 10px;
+}
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+      button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #d90429, #ef233c);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 10px rgba(217, 4, 41, 0.25);
+}
+
+    button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(217, 4, 41, 0.35);
+}
+
+      #message {
+    margin-top: 15px;
+    padding: 14px;
+    border-radius: 10px;
+    display: none;
+    font-weight: bold;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>🚑 Smart Emergency Route Navigator</h1>
+        <p>Fast & Smart Emergency Response System</p>
+    </header>
+
+    <div class="container">
+
+        <div class="card">
+
+            <h2>Emergency Request</h2>
+
+            <form id="emergencyForm">
+
+                <div class="form-group">
+                    <label>Patient Name</label>
+                    <input
+                        type="text"
+                        id="patient_name"
+                        placeholder="Enter patient name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Pickup Location</label>
+                    <input
+                        type="text"
+                        id="pickup_location"
+                        placeholder="Enter pickup location"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Destination Hospital</label>
+                    <input
+                        type="text"
+                        id="destination"
+                        placeholder="Enter hospital name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Emergency Type</label>
+
+                    <select id="emergency_type" required>
+                        <option value="">Select Emergency</option>
+                        <option value="Accident">🚗 Accident</option>
+                        <option value="Heart Attack">❤️ Heart Attack</option>
+                        <option value="Stroke">🧠 Stroke</option>
+                        <option value="Critical">🚨 Critical</option>
+                        <option value="Other">⚠️ Other</option>
+                    </select>
+                </div>
+
+                <button type="submit">
+                    🚑 Send Emergency Request
+                </button>
+
+            </form>
+
+            <div id="message"></div>
+
+        </div>
+
+    </div>
+<script>
+    document.getElementById("emergencyForm").addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        const patient_name = document.getElementById("patient_name").value;
+        const pickup_location = document.getElementById("pickup_location").value;
+        const destination = document.getElementById("destination").value;
+        const emergency_type = document.getElementById("emergency_type").value;
+
+        const message = document.getElementById("message");
+
+        try {
+
+            const response = await fetch("http://127.0.0.1:5000/emergency", {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    patient_name: patient_name,
+                    pickup_location: pickup_location,
+                    destination: destination,
+                    emergency_type: emergency_type
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+
+                message.style.display = "block";
+                message.innerText =
+                    "✅ Emergency request created successfully! Request ID: "
+                    + result.request_id;
+
+                message.style.background = "#d4edda";
+                message.style.color = "#155724";
+
+              
+
+            } else {
+
+                message.style.display = "block";
+                message.innerText = "❌ Something went wrong.";
+
+            }
+
+        } catch (error) {
+
+            message.style.display = "block";
+            message.innerText =
+                "❌ Backend connection failed. Make sure Flask server is running.";
+
+            message.style.background = "#f8d7da";
+            message.style.color = "#721c24";
+
+            console.error(error);
+        }
+
+    });
+    async function loadEmergencies() {
+
+    const emergencyList = document.getElementById("emergencyList");
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/emergencies"
+        );
+
+        const result = await response.json();
+
+        if (!result.emergencies || result.emergencies.length === 0) {
+
+            emergencyList.innerHTML =
+                "<p>No emergency requests found.</p>";
+
+            return;
+        }
+
+        let html = "";
+
+        result.emergencies.forEach((emergency) => {
+
+            html += `
+                <div style="
+                    border: 1px solid #ddd;
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    border-radius: 8px;
+                ">
+
+                    <strong>🚑 Patient:</strong>
+                    ${emergency.patient_name || "N/A"}
+                    <br><br>
+
+                    <strong>📍 Pickup:</strong>
+                    ${emergency.pickup_location || "N/A"}
+                    <br><br>
+
+                    <strong>🏥 Destination:</strong>
+                    ${emergency.destination || "N/A"}
+                    <br><br>
+
+                    <strong>🚨 Emergency:</strong>
+                    ${emergency.emergency_type || "N/A"}
+                    <br><br>
+
+                    <strong>🆔 Request ID:</strong>
+                    ${emergency.id || "N/A"}
+
+                </div>
+            `;
+        });
+
+        emergencyList.innerHTML = html;
+
+    } catch (error) {
+
+        emergencyList.innerHTML =
+            "❌ Unable to load emergency requests.";
+
+        console.error(error);
+    }
+}
+async function findRoute() {
+
+    const pickup = document.getElementById("pickup_location").value;
+    const destination = document.getElementById("destination").value;
+
+    if (!pickup || !destination) {
+        alert("⚠️ Please enter pickup location and destination first.");
+        return;
+    }
+
+    const routeUrl =
+        "https://www.google.com/maps/dir/?api=1" +
+        "&origin=" + encodeURIComponent(pickup) +
+        "&destination=" + encodeURIComponent(destination) +
+        "&travelmode=driving";
+
+   window.open(routeUrl, "_blank");
+}
+async function activateSignalPriority() {
+
+    const signalStatus = document.getElementById("signalStatus");
+    const dashboardSignal = document.getElementById("dashboardSignal");
+    const ambulanceStatus = document.getElementById("ambulanceStatus");
+
+    signalStatus.innerHTML =
+        "🚦 Traffic Signal Status: 🟡 Activating...";
+
+    signalStatus.style.background = "#fff3cd";
+    signalStatus.style.color = "#856404";
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/activate-signal",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    ambulance: true
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+
+            dashboardSignal.innerText = "🟢 Priority Active";
+            dashboardSignal.style.color = "#155724";
+
+            ambulanceStatus.innerText = "🚑 Priority Active";
+            ambulanceStatus.style.color = "#155724";
+
+            signalStatus.innerHTML =
+                "🚦 Traffic Signal Status: 🟢 AMBULANCE PRIORITY ACTIVE";
+
+            signalStatus.style.background = "#d4edda";
+            signalStatus.style.color = "#155724";
+
+            alert("🚑 " + data.message);
+
+        } else {
+
+            signalStatus.innerHTML =
+                "🚦 Traffic Signal Status: 🔴 Activation Failed";
+
+            signalStatus.style.background = "#f8d7da";
+            signalStatus.style.color = "#721c24";
+
+            alert("❌ " + data.message);
+        }
+
+    } catch (error) {
+
+        signalStatus.innerHTML =
+            "🚦 Traffic Signal Status: 🔴 Backend Connection Failed";
+
+        signalStatus.style.background = "#f8d7da";
+        signalStatus.style.color = "#721c24";
+
+        alert(
+            "❌ Backend connection failed. Make sure Flask server is running."
+        );
+
+        console.error(error);
+    }
+}
+</script>
+<div class="container">
+
+    <div class="card">
+
+       <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;"></div>
+
+    <div style="
+        flex: 1;
+        background: #d4edda;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+    ">
+        <h3>🚑 Ambulance</h3>
+        <p id="ambulanceStatus">Ready</p>
+    </div>
+
+    <div style="
+        flex: 1;
+        background: #fff3cd;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+    ">
+        <h3>🚦 Signal</h3>
+        <p id="dashboardSignal">Normal</p>
+    </div>
+
+</div>
+        <h2>🚨 Emergency Requests</h2>
+
+        <button onclick="loadEmergencies()">
+            🔄 Load Emergency Requests
+        </button>
+        <div id="signalStatus"
+     style="
+        margin-top: 20px;
+        padding: 15px;
+        background: #fff3cd;
+        border-radius: 8px;
+        font-weight: bold;
+     ">
+
+    🚦 Traffic Signal Status:
+    <span>Normal</span>
+
+</div>
+
+<button onclick="activateSignalPriority()"
+        style="margin-top: 10px;">
+    🚦 Activate Ambulance Signal Priority
+</button>
+        
+        <button onclick="findRoute()"
+                style="margin-top: 10px;">
+            🗺️ Find Fastest Route
+        </button> 
+
+        <div id="emergencyList" style="margin-top: 20px;">
+            No emergency requests loaded.
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>

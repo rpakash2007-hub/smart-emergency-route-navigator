@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Emergency Route Navigator</title>
+
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #f3f6fa;
+            color: #172033;
+        }
+
+
+        /* =========================
+           NAVBAR
+        ========================= */
+
+        .navbar {
+            height: 72px;
+            background: #101827;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 7%;
+
+            color: white;
+
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #ff4545;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #ff4b4b;
+        }
+
+
+        /* =========================
+           HERO
+        ========================= */
+
+        .hero {
+            min-height: 500px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 70px 10%;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #101827,
+                    #1c283b
+                );
+
+            color: white;
+        }
+
+        .hero-content {
+            max-width: 650px;
+        }
+
+        .hero h1 {
+            font-size: 55px;
+            line-height: 1.1;
+        }
+
+        .hero h1 span {
+            color: #ff4747;
+        }
+
+        .hero p {
+            margin-top: 25px;
+
+            font-size: 18px;
+            line-height: 1.7;
+
+            color: #d4d9e3;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .primary-btn,
+        .secondary-btn {
+            padding: 14px 25px;
+
+            border-radius: 8px;
+
+            font-size: 15px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            border: none;
+        }
+
+        .primary-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .primary-btn:hover {
+            background: #dc2626;
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: white;
+            border: 1px solid #64748b;
+        }
+
+        .secondary-btn:hover {
+            background: #263348;
+        }
+
+        .hero-icon {
+            font-size: 150px;
+            animation: ambulanceMove 2s infinite alternate;
+        }
+
+        @keyframes ambulanceMove {
+
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(15px);
+            }
+
+        }
+
+
+        /* =========================
+           SECTION
+        ========================= */
+
+        .section {
+            padding: 70px 8%;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 40px;
+        }
+
+
+        /* =========================
+           DASHBOARD
+        ========================= */
+
+        .dashboard {
+            max-width: 1200px;
+            margin: auto;
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+
+            border-radius: 16px;
+
+            padding: 28px;
+
+            box-shadow:
+                0 8px 25px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        .card h3 {
+            margin-bottom: 22px;
+            font-size: 22px;
+        }
+
+
+        /* =========================
+           FORM
+        ========================= */
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .input-box {
+            width: 100%;
+
+            padding: 13px;
+
+            border: 1px solid #d6dbe3;
+
+            border-radius: 8px;
+
+            font-size: 15px;
+
+            outline: none;
+        }
+
+        .input-box:focus {
+            border-color: #ef4444;
+        }
+
+        .location-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .small-btn {
+            padding: 10px 14px;
+
+            background: #eef2f7;
+
+            border: none;
+
+            border-radius: 7px;
+
+            cursor: pointer;
+
+            font-size: 13px;
+        }
+
+        .small-btn:hover {
+            background: #dce3ec;
+        }
+
+
+        .find-btn {
+            width: 100%;
+
+            margin-top: 8px;
+
+            padding: 15px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #ef4444;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .find-btn:hover {
+            background: #dc2626;
+        }
+
+
+        /* =========================
+           RESULT
+        ========================= */
+
+        .result-row {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            padding: 18px 0;
+
+            border-bottom: 1px solid #edf0f4;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #5d6675;
+        }
+
+        .result-value {
+            font-weight: bold;
+            color: #ef4444;
+        }
+
+
+        /* =========================
+           MAP
+        ========================= */
+
+        .map-card {
+            max-width: 1200px;
+
+            margin: 30px auto 0;
+
+            background: white;
+
+            padding: 25px;
+
+            border-radius: 16px;
+
+            box-shadow:
+                0 8px 25px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        .map-card h3 {
+            margin-bottom: 20px;
+        }
+
+        #map {
+            width: 100%;
+            height: 500px;
+
+            border-radius: 12px;
+        }
+
+
+        /* =========================
+           STATUS CARDS
+        ========================= */
+
+        .status-grid {
+            max-width: 1200px;
+
+            margin: auto;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 20px;
+        }
+
+        .status-card {
+            background: white;
+
+            padding: 30px;
+
+            border-radius: 15px;
+
+            text-align: center;
+
+            box-shadow:
+                0 6px 20px
+                rgba(0, 0, 0, 0.07);
+        }
+
+        .status-icon {
+            font-size: 40px;
+
+            margin-bottom: 15px;
+        }
+
+        .status-card h3 {
+            margin-bottom: 8px;
+        }
+
+        .status-card p {
+            color: #697386;
+        }
+
+
+        /* =========================
+           TRAFFIC SIGNAL
+        ========================= */
+
+        .priority-container {
+            max-width: 1000px;
+
+            margin: auto;
+
+            background: #101827;
+
+            color: white;
+
+            padding: 40px;
+
+            border-radius: 18px;
+
+            text-align: center;
+        }
+
+        .priority-container h2 {
+            margin-bottom: 15px;
+        }
+
+        .priority-container p {
+            color: #cbd5e1;
+
+            line-height: 1.6;
+        }
+
+        .signal-box {
+            margin: 30px auto 0;
+
+            width: 180px;
+
+            padding: 20px;
+
+            background: #1e293b;
+
+            border-radius: 15px;
+        }
+
+        .signal {
+            width: 28px;
+            height: 28px;
+
+            border-radius: 50%;
+
+            margin: 8px auto;
+        }
+
+        .signal-red {
+            background: #ef4444;
+            box-shadow: 0 0 15px #ef4444;
+        }
+
+        .signal-yellow {
+            background: #facc15;
+        }
+
+        .signal-green {
+            background: #22c55e;
+            box-shadow: 0 0 15px #22c55e;
+        }
+
+        .priority-status {
+            margin-top: 20px;
+
+            padding: 13px;
+
+            border-radius: 8px;
+
+            background: #263348;
+        }
+
+
+        /* =========================
+           ABOUT
+        ========================= */
+
+        .about {
+            background: white;
+
+            padding: 70px 15%;
+
+            text-align: center;
+        }
+
+        .about h2 {
+            margin-bottom: 25px;
+            font-size: 32px;
+        }
+
+        .about p {
+            line-height: 1.8;
+            color: #596273;
+        }
+
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        footer {
+            background: #101827;
+
+            color: white;
+
+            text-align: center;
+
+            padding: 25px;
+
+            line-height: 1.8;
+        }
+
+
+        /* =========================
+           LOADING
+        ========================= */
+
+        .loading {
+            display: none;
+
+            margin-top: 15px;
+
+            padding: 12px;
+
+            border-radius: 8px;
+
+            background: #fff7ed;
+
+            color: #c2410c;
+
+            text-align: center;
+        }
+
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 850px) {
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                text-align: center;
+                justify-content: center;
+            }
+
+            .hero-icon {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 40px;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about {
+                padding: 60px 8%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================
+         NAVBAR
+    ========================== -->
+
+    <nav class="navbar">
+
+        <div class="logo">
+            🚑 Smart <span>Emergency</span> Route Navigator
+        </div>
+
+        <div class="nav-links">
+
+            <a href="#home">Home</a>
+
+            <a href="#planner">Route</a>
+
+            <a href="#traffic">Traffic</a>
+
+            <a href="#priority">Signal Priority</a>
+
+            <a href="#about">About</a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- =========================
+         HERO
+    ========================== -->
+
+    <section class="hero" id="home">
+
+        <div class="hero-content">
+
+            <h1>
+                Smart Emergency
+                <br>
+                <span>Route Navigator</span>
+            </h1>
+
+            <p>
+                An intelligent emergency navigation system
+                designed to help ambulances find faster routes
+                and reach hospitals efficiently.
+            </p>
+
+            <div class="hero-buttons">
+
+                <button
+                    class="primary-btn"
+                    onclick="scrollToPlanner()">
+
+                    🚨 Find Emergency Route
+
+                </button>
+
+                <button
+                    class="secondary-btn"
+                    onclick="useCurrentLocation()">
+
+                    📍 Use My Location
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="hero-icon">
+            🚑
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         ROUTE PLANNER
+    ========================== -->
+
+    <section class="section" id="planner">
+
+        <h2 class="section-title">
+            Emergency Route Planner
+        </h2>
+
+
+        <div class="dashboard">
+
+
+            <!-- INPUT CARD -->
+
+            <div class="card">
+
+                <h3>
+                    🚑 Emergency Details
+                </h3>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Ambulance Location
+                    </label>
+
+                    <input
+                        type="text"
+                        id="startLocation"
+                        class="input-box"
+                        placeholder="Example: Salem, Tamil Nadu">
+
+                    <div class="location-buttons">
+
+                        <button
+                            class="small-btn"
+                            onclick="useCurrentLocation()">
+
+                            📍 Use My Current Location
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Emergency Destination
+                    </label>
+
+                    <input
+                        type="text"
+                        id="destination"
+                        class="input-box"
+                        placeholder="Example: Salem Government Hospital">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Emergency Level
+                    </label>
+
+                    <select
+                        id="emergencyLevel"
+                        class="input-box">
+
+                        <option value="high">
+                            🔴 High Priority
+                        </option>
+
+                        <option value="medium">
+                            🟡 Medium Priority
+                        </option>
+
+                        <option value="low">
+                            🟢 Low Priority
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    class="find-btn"
+                    onclick="findEmergencyRoute()">
+
+                    🚨 Find Fastest Route
+
+                </button>
+
+
+                <div
+                    class="loading"
+                    id="loading">
+
+                    🔄 Calculating optimized emergency route...
+
+                </div>
+
+            </div>
+
+
+            <!-- RESULT CARD -->
+
+            <div class="card">
+
+                <h3>
+                    📊 Route Information
+                </h3>
+
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Distance
+                    </span>
+
+                    <span
+                        class="result-value"
+                        id="distance">
+
+                        --
+
+                    </span>
+
+                </div>
+
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Estimated Time
+                    </span>
+
+                    <span
+                        class="result-value"
+                        id="time">
+
+                        --
+
+                    </span>
+
+                </div>
+
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Traffic Status
+                    </span>
+
+                    <span
+                        class="result-value"
+                        id="trafficStatus">
+
+                        --
+
+                    </span>
+
+                </div>
+
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Route Type
+                    </span>
+
+                    <span
+                        class="result-value"
+                        id="routeType">
+
+                        --
+
+                    </span>
+
+                </div>
+
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Signal Priority
+                    </span>
+
+                    <span
+                        class="result-value"
+                        id="signalStatus">
+
+                        Ready
+
+                    </span>
+
+                </div>
+
+
+                <div class="result-row">
+
+                    <span class="result-label">
+                        Route Status
+                    </span>
+
+                    <span
+                        class="result-value"
+                        id="routeStatus">
+
+                        Waiting...
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- MAP -->
+
+        <div class="map-card">
+
+            <h3>
+                🗺️ Emergency Route Map
+            </h3>
+
+            <div id="map"></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         TRAFFIC
+    ========================== -->
+
+    <section
+        class="section"
+        id="traffic">
+
+        <h2 class="section-title">
+            🚦 Traffic Monitoring
+        </h2>
+
+
+        <div class="status-grid">
+
+
+            <div class="status-card">
+
+                <div class="status-icon">
+                    🟢
+                </div>
+
+                <h3>
+                    Low Traffic
+                </h3>
+
+                <p>
+                    Roads are clear and
+                    suitable for emergency travel.
+                </p>
+
+            </div>
+
+
+            <div class="status-card">
+
+                <div class="status-icon">
+                    🟡
+                </div>
+
+                <h3>
+                    Medium Traffic
+                </h3>
+
+                <p>
+                    Moderate traffic detected.
+                    Route optimization recommended.
+                </p>
+
+            </div>
+
+
+            <div class="status-card">
+
+                <div class="status-icon">
+                    🔴
+                </div>
+
+                <h3>
+                    Heavy Traffic
+                </h3>
+
+                <p>
+                    Congested road. Alternative
+                    route should be considered.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         SIGNAL PRIORITY
+    ========================== -->
+
+    <section
+        class="section"
+        id="priority">
+
+
+        <div class="priority-container">
+
+            <h2>
+                🚦 Traffic Signal Priority
+            </h2>
+
+            <p>
+                The system provides priority to emergency
+                vehicles at traffic signals to reduce
+                unnecessary waiting time.
+            </p>
+
+
+            <div class="signal-box">
+
+                <div class="signal signal-red"></div>
+
+                <div class="signal signal-yellow"></div>
+
+                <div class="signal signal-green"></div>
+
+            </div>
+
+
+            <div
+                class="priority-status"
+                id="priorityMessage">
+
+                🟢 Emergency Priority: Ready
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         ABOUT
+    ========================== -->
+
+    <section
+        class="about"
+        id="about">
+
+        <h2>
+            About the Project
+        </h2>
+
+        <p>
+
+            Smart Emergency Route Navigator is an
+            intelligent navigation system developed
+            for emergency vehicles such as ambulances.
+            The system helps identify an optimized route
+            between the ambulance location and emergency
+            destination. It provides route information,
+            distance, estimated travel time, traffic
+            analysis and emergency traffic signal priority.
+
+        </p>
+
+    </section>
+
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+
+    <footer>
+
+        <p>
+            © 2026 Smart Emergency Route Navigator
+        </p>
+
+        <p>
+            Sona College of Arts and Science
+        </p>
+
+        <p>
+            B.Sc. Computer Science
+            (Artificial Intelligence and Data Science)
+        </p>
+
+    </footer>
+
+
+    <!-- Leaflet JS -->
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+
+    <script>
+
+        /* ==========================================
+           MAP INITIALIZATION
+        ========================================== */
+
+        let map;
+
+        let ambulanceMarker = null;
+
+        let hospitalMarker = null;
+
+        let routeLine = null;
+
+
+        /*
+         Default location:
+         Salem, Tamil Nadu
+        */
+
+        let ambulanceLocation = [
+            11.6643,
+            78.1460
+        ];
+
+
+        function initializeMap() {
+
+            map = L.map("map").setView(
+                ambulanceLocation,
+                13
+            );
+
+
+            L.tileLayer(
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+                    attribution:
+                        "&copy; OpenStreetMap contributors"
+                }
+            ).addTo(map);
+
+
+            ambulanceMarker =
+                L.marker(ambulanceLocation)
+                .addTo(map)
+                .bindPopup(
+                    "<b>🚑 Ambulance</b><br>" +
+                    "Current Location"
+                );
+
+
+            ambulanceMarker.openPopup();
+
+        }
+
+
+        initializeMap();
+
+
+        /* ==========================================
+           SCROLL TO PLANNER
+        ========================================== */
+
+        function scrollToPlanner() {
+
+            document
+                .getElementById("planner")
+                .scrollIntoView({
+                    behavior: "smooth"
+                });
+
+        }
+
+
+        /* ==========================================
+           CURRENT LOCATION
+        ========================================== */
+
+        function useCurrentLocation() {
+
+            if (!navigator.geolocation) {
+
+                alert(
+                    "Geolocation is not supported by this browser."
+                );
+
+                return;
+
+            }
+
+
+            navigator.geolocation.getCurrentPosition(
+
+                function(position) {
+
+                    ambulanceLocation = [
+
+                        position.coords.latitude,
+
+                        position.coords.longitude
+
+                    ];
+
+
+                    document
+                        .getElementById("startLocation")
+                        .value =
+                        "Current GPS Location";
+
+
+                    map.setView(
+                        ambulanceLocation,
+                        15
+                    );
+
+
+                    if (ambulanceMarker) {
+
+                        ambulanceMarker
+                            .setLatLng(
+                                ambulanceLocation
+                            );
+
+                    }
+
+                    else {
+
+                        ambulanceMarker =
+                            L.marker(
+                                ambulanceLocation
+                            )
+                            .addTo(map);
+
+                    }
+
+
+                    ambulanceMarker
+                        .bindPopup(
+                            "<b>🚑 Ambulance</b><br>" +
+                            "Your Current Location"
+                        )
+                        .openPopup();
+
+                },
+
+
+                function(error) {
+
+                    alert(
+                        "Unable to access your location. " +
+                        "Please allow location permission."
+                    );
+
+                }
+
+            );
+
+        }
+
+
+        /* ==========================================
+           LOCATION SEARCH
+        ========================================== */
+
+        async function getCoordinates(place) {
+
+            const url =
+                "https://nominatim.openstreetmap.org/search" +
+                "?format=json" +
+                "&limit=1" +
+                "&q=" +
+                encodeURIComponent(place);
+
+
+            const response =
+                await fetch(url);
+
+
+            const data =
+                await response.json();
+
+
+            if (data.length === 0) {
+
+                throw new Error(
+                    "Location not found"
+                );
+
+            }
+
+
+            return [
+
+                parseFloat(data[0].lat),
+
+                parseFloat(data[0].lon)
+
+            ];
+
+        }
+
+
+        /* ==========================================
+           ROUTE CALCULATION
+        ========================================== */
+
+        async function findEmergencyRoute() {
+
+            const startText =
+                document
+                    .getElementById("startLocation")
+                    .value
+                    .trim();
+
+
+            const destinationText =
+                document
+                    .getElementById("destination")
+                    .value
+                    .trim();
+
+
+            const emergency =
+                document
+                    .getElementById("emergencyLevel")
+                    .value;
+
+
+            if (
+                startText === "" ||
+                destinationText === ""
+            ) {
+
+                alert(
+                    "Please enter ambulance location and destination."
+                );
+
+                return;
+
+            }
+
+
+            const loading =
+                document.getElementById("loading");
+
+
+            loading.style.display = "block";
+
+
+            try {
+
+
+                /* -----------------------------
+                   GET START LOCATION
+                ----------------------------- */
+
+                let startCoordinates;
+
+
+                if (
+                    startText ===
+                    "Current GPS Location"
+                ) {
+
+                    startCoordinates =
+                        ambulanceLocation;
+
+                }
+
+                else {
+
+                    startCoordinates =
+                        await getCoordinates(
+                            startText
+                        );
+
+                }
+
+
+                /* -----------------------------
+                   GET DESTINATION
+                ----------------------------- */
+
+                const destinationCoordinates =
+                    await getCoordinates(
+                        destinationText
+                    );
+
+
+                ambulanceLocation =
+                    startCoordinates;
+
+
+                /* -----------------------------
+                   UPDATE AMBULANCE MARKER
+                ----------------------------- */
+
+                if (ambulanceMarker) {
+
+                    ambulanceMarker
+                        .setLatLng(
+                            startCoordinates
+                        );
+
+                }
+
+                else {
+
+                    ambulanceMarker =
+                        L.marker(
+                            startCoordinates
+                        )
+                        .addTo(map);
+
+                }
+
+
+                ambulanceMarker
+                    .bindPopup(
+                        "<b>🚑 Ambulance</b><br>" +
+                        startText
+                    );
+
+
+                /* -----------------------------
+                   HOSPITAL MARKER
+                ----------------------------- */
+
+                if (hospitalMarker) {
+
+                    map.removeLayer(
+                        hospitalMarker
+                    );
+
+                }
+
+
+                hospitalMarker =
+                    L.marker(
+                        destinationCoordinates
+                    )
+                    .addTo(map);
+
+
+                hospitalMarker
+                    .bindPopup(
+                        "<b>🏥 Emergency Destination</b><br>" +
+                        destinationText
+                    );
+
+
+                /* -----------------------------
+                   OSRM ROUTE
+                ----------------------------- */
+
+                const startLon =
+                    startCoordinates[1];
+
+                const startLat =
+                    startCoordinates[0];
+
+                const endLon =
+                    destinationCoordinates[1];
+
+                const endLat =
+                    destinationCoordinates[0];
+
+
+                const routeURL =
+                    "https://router.project-osrm.org/route/v1/driving/" +
+
+                    startLon +
+                    "," +
+                    startLat +
+                    ";" +
+
+                    endLon +
+                    "," +
+                    endLat +
+
+                    "?overview=full&geometries=geojson";
+
+
+                const routeResponse =
+                    await fetch(
+                        routeURL
+                    );
+
+
+                const routeData =
+                    await routeResponse.json();
+
+
+                if (
+                    !routeData.routes ||
+                    routeData.routes.length === 0
+                ) {
+
+                    throw new Error(
+                        "Unable to calculate route."
+                    );
+
+                }
+
+
+                const route =
+                    routeData.routes[0];
+
+
+                /* -----------------------------
+                   REMOVE OLD ROUTE
+                ----------------------------- */
+
+                if (routeLine) {
+
+                    map.removeLayer(
+                        routeLine
+                    );
+
+                }
+
+
+                /* -----------------------------
+                   CONVERT ROUTE
+                ----------------------------- */
+
+                const routeCoordinates =
+                    route.geometry.coordinates.map(
+                        function(point) {
+
+                            return [
+                                point[1],
+                                point[0]
+                            ];
+
+                        }
+                    );
+
+
+                /* -----------------------------
+                   DRAW ROUTE
+                ----------------------------- */
+
+                routeLine =
+                    L.polyline(
+                        routeCoordinates,
+                        {
+                            weight: 7,
+                            opacity: 0.85
+                        }
+                    )
+                    .addTo(map);
+
+
+                /* -----------------------------
+                   FIT MAP
+                ----------------------------- */
+
+                map.fitBounds(
+                    routeLine.getBounds(),
+                    {
+                        padding: [30, 30]
+                    }
+                );
+
+
+                /* -----------------------------
+                   DISTANCE
+                ----------------------------- */
+
+                const distanceKm =
+                    (
+                        route.distance /
+                        1000
+                    ).toFixed(2);
+
+
+                /* -----------------------------
+                   TIME
+                ----------------------------- */
+
+                let minutes =
+                    Math.ceil(
+                        route.duration / 60
+                    );
+
+
+                /* Emergency priority */
+
+                if (emergency === "high") {
+
+                    minutes =
+                        Math.max(
+                            1,
+                            minutes - 3
+                        );
+
+                }
+
+                else if (
+                    emergency === "medium"
+                ) {
+
+                    minutes =
+                        Math.max(
+                            1,
+                            minutes - 1
+                        );
+
+                }
+
+
+                /* -----------------------------
+                   TRAFFIC ANALYSIS
+                ----------------------------- */
+
+                let trafficStatus;
+
+                let routeType;
+
+
+                if (minutes <= 10) {
+
+                    trafficStatus =
+                        "Low Traffic";
+
+                    routeType =
+                        "Fastest Route";
+
+                }
+
+                else if (minutes <= 20) {
+
+                    trafficStatus =
+                        "Medium Traffic";
+
+                    routeType =
+                        "Optimized Route";
+
+                }
+
+                else {
+
+                    trafficStatus =
+                        "Heavy Traffic";
+
+                    routeType =
+                        "Alternative Route";
+
+                }
+
+
+                if (emergency === "high") {
+
+                    routeType =
+                        "Emergency Priority Route";
+
+                }
+
+
+                /* -----------------------------
+                   UPDATE RESULT
+                ----------------------------- */
+
+                document
+                    .getElementById("distance")
+                    .innerText =
+                    distanceKm +
+                    " km";
+
+
+                document
+                    .getElementById("time")
+                    .innerText =
+                    minutes +
+                    " minutes";
+
+
+                document
+                    .getElementById("trafficStatus")
+                    .innerText =
+                    trafficStatus;
+
+
+                document
+                    .getElementById("routeType")
+                    .innerText =
+                    routeType;
+
+
+                document
+                    .getElementById("signalStatus")
+                    .innerText =
+                    "Priority Enabled";
+
+
+                document
+                    .getElementById("routeStatus")
+                    .innerText =
+                    "Route Found ✓";
+
+
+                /* -----------------------------
+                   SIGNAL PRIORITY
+                ----------------------------- */
+
+                document
+                    .getElementById("priorityMessage")
+                    .innerText =
+                    "🟢 Emergency Priority: ACTIVE";
+
+
+                loading.style.display =
+                    "none";
+
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+
+                loading.style.display =
+                    "none";
+
+
+                alert(
+                    "Unable to calculate route. " +
+                    "Check the location names and internet connection."
+                );
+
+            }
+
+        }
+
+    </script>
+
+
+</body>
+
+</html>
